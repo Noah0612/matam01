@@ -30,15 +30,13 @@ void RLEListDestroy(RLEList list){
 
 
 RLEListResult RLEListAppend(RLEList list, char value){
-    if(list == NULL){ /*list == NULL*/
+    if(list == NULL){
         return RLE_LIST_NULL_ARGUMENT;
     }
-    RLEList nextNode = list -> next;
-    while(nextNode){ /*going to the last node */
-        list = nextNode;
-        nextNode = list -> next;
-    } /* list is the last node */
-    if(list -> val == value){ /*checking if need to create new node*/
+    while((list -> next) != NULL){                               /*going to the last node */
+        list = list -> next;
+    }                                              /* list is the last node */
+    if(list -> val == value){                      /*checking if need to create new node*/
         list -> repetitions ++;
         return RLE_LIST_SUCCESS;
     }
@@ -76,9 +74,17 @@ RLEListResult RLEListRemove(RLEList list, int index){
     if(index < 0 || index > RLEListSize(list)){ /*------------------also checking if index < 0 */
         return RLE_LIST_INDEX_OUT_OF_BOUNDS;
     }
+
     int range = list -> repetitions;
-    if(index >= 0 && index <= range){ /* first time*/
-        if(list -> repetitions == 1){ /* removes entire node ----> CANNOT DELETE ENTIRE NODE BECAUSE GETTING A POINTER AND NOT DOUBLE POINTER!*/
+
+    if(index >= 0 && index < range){ /* first time*/
+        printf("index >= 0 && index <= range\n");
+        if(list -> repetitions == 1){ 
+            /*
+            *                           PROBLEM!
+                what happend if the index is in the first node? I cannot change
+                the (RLEList list) to list -> next beacuse it is not a pointer to a pointer.
+            */
             RLEList toDelete = list;
             list = list -> next;
             free(toDelete);
@@ -86,11 +92,12 @@ RLEListResult RLEListRemove(RLEList list, int index){
         else{
             (list -> repetitions)--;
         }
-        index = -1; /*get out of the loop*/
+        return RLE_LIST_SUCCESS;
     } 
+
     while((list -> next) != NULL && index >= 0){
-        if(index >= range && index <= range + ((list -> next) -> repetitions)){ /*found the node of the index*/
-            if((list -> next) -> repetitions == 1){ /* removes entire node*/
+        if(index >= range && index < range + ((list -> next) -> repetitions)){ /*found the node of the index*/
+            if((list -> next) -> repetitions == 1){ /* removes entire node */
                 RLEList ptr = list -> next;
                 list -> next = (list -> next) -> next;
                 free(ptr); 
@@ -98,80 +105,69 @@ RLEListResult RLEListRemove(RLEList list, int index){
             else{
                 ((list -> next) -> repetitions)--;
             }
-            index = -1; /*get out of the loop*/
+            return RLE_LIST_SUCCESS;
         }
         range = range + ((list -> next) -> repetitions);
         list = list -> next;
     }
+    return -1; /* SHOULD NEVER BE HERE */
 }
 
 char RLEListGet(RLEList list, int index, RLEListResult *result){
-    RLEListResult resultRle;
     if(list == NULL){
-        resultRle = RLE_LIST_NULL_ARGUMENT;
-        result = &resultRle;
+        *result = RLE_LIST_NULL_ARGUMENT;
         return 0;
     }
     if(index < 0 || index > RLEListSize(list)){
-        resultRle = RLE_LIST_INDEX_OUT_OF_BOUNDS;
-        result = &resultRle;
+        *result = RLE_LIST_INDEX_OUT_OF_BOUNDS;
         return 0;
     }
-    int range = list -> repetitions;
+    int range = 0;
     while(list != NULL){
-        if(index >= range && index <= range + (list -> repetitions)){ /*found the node of the index*/
-            resultRle = RLE_LIST_SUCCESS;
-            result = &resultRle;
+        if(index >= range && index < range + (list -> repetitions)){ /*found the node of the index*/
+            *result = RLE_LIST_SUCCESS;
             return list -> val;
         }
         range = range + (list -> repetitions);
         list = list -> next;
     }
-    return -1; /*THERE IS A PROBLEM IF IT GET HERE*/
+    return -1; /* SHOULD NEVER BE HERE */
 }
 
-char* RLEListExportToString(RLEList list, RLEListResult* result){
-    RLEListResult resultRle;
+char* RLEListExportToString(RLEList list, RLEListResult* result){ /*fix return value!!!*/
     if(list == NULL){
-        resultRle = RLE_LIST_NULL_ARGUMENT;
-        result = &resultRle;
+        *result = RLE_LIST_NULL_ARGUMENT;
         return NULL;
     }
 
-    char *returnString = malloc(4*sizeof(char));
+    char *returnString = malloc(0);
     if(returnString == NULL){
-        resultRle = RLE_LIST_OUT_OF_MEMORY;
-        result = &resultRle;
+        *result = RLE_LIST_OUT_OF_MEMORY;
         return NULL;
     }
-    while(list != NULL){
-        char *repetitionsStringZero = malloc(12*sizeof(char));
-        sprintf(repetitionsStringZero, "%d", list -> repetitions);
-        int stringLength = 0;
-        int i = 11;
-        while(stringLength == 0){
-            if(repetitionsStringZero[i] != 0){
-                stringLength = i;
-            }
-        } 
-        char *repetitionsString = malloc((stringLength + 3)*sizeof(char));
-        repetitionsString[0] = list -> val;
-        for(int j = 0; j < stringLength; j++){
-            repetitionsString[j+1] = repetitionsStringZero[j+stringLength];
-        }
-        repetitionsString[1+stringLength] = '\\';
-        repetitionsString[2+stringLength] = 'n';
 
-        returnString = realloc(returnString,(strlen(returnString)+stringLength)*sizeof(char));
+    while(list != NULL){
+        char *repetitionsString = malloc(12*sizeof(char)); /* maximum length of an int is 12 ~ 4 BILLION */
+        sprintf(repetitionsString, "%d", list -> repetitions);
+
+        int stringLength = strlen(repetitionsString); /* returns the size of the numer (list -> repetitions) */
+
+        char *nodeString = malloc((stringLength + 2)*sizeof(char));
+        nodeString[0] = list -> val;
+        for(int j = 0; j < stringLength; j++){
+            nodeString[j+1] = repetitionsString[j]; /* nodeString is j+1 because it has (list -> val) in place 0 */
+        }
+        nodeString[1+stringLength] = '\n'; 
+
+        returnString = realloc(returnString,(strlen(returnString)+strlen(nodeString))*sizeof(char)); /* reallocate memory right to the returnString memory*/
         if(returnString == NULL){
-            resultRle = RLE_LIST_NULL_ARGUMENT;
-            result = &resultRle;
+            *result = RLE_LIST_NULL_ARGUMENT;
             return NULL;
         }
-        strcat(returnString, repetitionsString);
+        strcat(returnString, nodeString); /* combining the strings */
+        list = list -> next; /* moving with the while loop */
     }
     
-    resultRle = RLE_LIST_SUCCESS;
-    result = &resultRle;
+    result = RLE_LIST_SUCCESS;
     return returnString;
 }
