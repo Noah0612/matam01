@@ -17,3 +17,11 @@ RLEList RLEListCreate(){
     return ptr;
 }
 
+void RLEListDestroy(RLEList list){
+    while(list)
+    {
+        RLEList toDelete = list;
+        list = list -> next;
+        free(toDelete);
+    }
+}
