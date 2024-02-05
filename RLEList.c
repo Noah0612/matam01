@@ -1,7 +1,19 @@
 #include <stdio.h>
 #include "RLEList.h"
 
-typedef struct RLEList_t{
+struct RLEList_t{
+    char value;
+    int repetitions;
+    struct RLEList_t *next;
+};
 
-}RLEList;
+typedef struct RLEList_t *RLEList;
+
+RLEList RLEListCreate(){
+    RLEList ptr = (RLEList)malloc(sizeof(RLEList_t));
+    if(!ptr){
+        return NULL;
+    }
+    return ptr;
+}
 
