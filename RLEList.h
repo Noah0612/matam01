@@ -113,7 +113,7 @@ RLEListResult RLEListRemove(RLEList list, int index);
 * @param result - Pointer to be used to store the result of the operation, if it is NULL, the result will not be saved.
 * 	RLE_LIST_NULL_ARGUMENT if a NULL was sent to the function as list.
 * 	RLE_LIST_INDEX_OUT_OF_BOUNDS if given index is not withing the list's bounds.
-* 	LIST_SUCCESS the character found at index has been retrieved successfully.
+* 	RLE_LIST_SUCCESS the character found at index has been retrieved successfully.
 * @return
 * 	0 if result is not RLE_LIST_SUCCESS.
 * 	The character found at given index in case of success.   

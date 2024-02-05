@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "RLEList.h"
 
 struct RLEList_t{
@@ -101,4 +103,74 @@ RLEListResult RLEListRemove(RLEList list, int index){
         range = range + ((list -> next) -> repetitions);
         list = list -> next;
     }
+}
+
+char RLEListGet(RLEList list, int index, RLEListResult *result){
+    RLEListResult resultRle;
+    if(list == NULL){
+        resultRle = RLE_LIST_NULL_ARGUMENT;
+        result = &resultRle;
+        return 0;
+    }
+    if(index < 0 || index > RLEListSize(list)){
+        resultRle = RLE_LIST_INDEX_OUT_OF_BOUNDS;
+        result = &resultRle;
+        return 0;
+    }
+    int range = list -> repetitions;
+    while(list != NULL){
+        if(index >= range && index <= range + (list -> repetitions)){ /*found the node of the index*/
+            resultRle = RLE_LIST_SUCCESS;
+            result = &resultRle;
+            return list -> val;
+        }
+        range = range + (list -> repetitions);
+        list = list -> next;
+    }
+    return -1; /*THERE IS A PROBLEM IF IT GET HERE*/
+}
+
+char* RLEListExportToString(RLEList list, RLEListResult* result){
+    RLEList resultRle;
+    if(list == NULL){
+        resultRle = RLE_LIST_NULL_ARGUMENT;
+        result = &resultRle;
+        return NULL;
+    }
+
+    char* returnString = (char* )malloc(0);
+    if(returnString == NULL){
+        resultRle = RLE_LIST_OUT_OF_MEMORY;
+        result = &resultRle;
+        return NULL;
+    }
+    while(list != NULL){
+        char repetitionsStringZero[12] = itoa(list -> repetitions);
+        int stringLength = 0;
+        int i = 11;
+        while(stringLength == 0){
+            if(repetitionsStringZero[i] != 0){
+                stringLength = i;
+            }
+        } 
+        char *repetitionsString = mallco((stringLength + 3)*sizeof(char));
+        repetitionsString[0] = list -> val;
+        for(int j = 0; j < stringLength; j++){
+            repetitionsString[j+1] = repetitionsStringZero[j+stringLength];
+        }
+        repetitionsString[1+stringLength] = '\\';
+        repetitionsString[2+stringLength] = 'n';
+
+        returnString = (char* )realloc((strlen(returnString)+stringLength)sizeof(char));
+        if(returnString == NULL){
+            resultRle = RLE_LIST_NULL_ARGUMENT;
+            result = &resultRle;
+            return NULL;
+        }
+        strcat(returnString, repetitionsString);
+    }
+    
+    resultRle = RLE_LIST_SUCCESS;
+    result = &resultRle;
+    return returnString;
 }
