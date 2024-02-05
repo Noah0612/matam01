@@ -12,7 +12,7 @@ struct RLEList_t{
 typedef struct RLEList_t *RLEList;
 
 RLEList RLEListCreate(){
-    RLEList ptr = (RLEList)malloc(sizeof(RLEList_t));
+    RLEList ptr = (RLEList)malloc(sizeof(RLEList));
     if(ptr == NULL){
         return NULL;
     }
@@ -131,21 +131,22 @@ char RLEListGet(RLEList list, int index, RLEListResult *result){
 }
 
 char* RLEListExportToString(RLEList list, RLEListResult* result){
-    RLEList resultRle;
+    RLEListResult resultRle;
     if(list == NULL){
         resultRle = RLE_LIST_NULL_ARGUMENT;
         result = &resultRle;
         return NULL;
     }
 
-    char* returnString = (char* )malloc(0);
+    char *returnString = malloc(4*sizeof(char));
     if(returnString == NULL){
         resultRle = RLE_LIST_OUT_OF_MEMORY;
         result = &resultRle;
         return NULL;
     }
     while(list != NULL){
-        char repetitionsStringZero[12] = itoa(list -> repetitions);
+        char *repetitionsStringZero = malloc(12*sizeof(char));
+        sprintf(repetitionsStringZero, "%d", list -> repetitions);
         int stringLength = 0;
         int i = 11;
         while(stringLength == 0){
@@ -153,7 +154,7 @@ char* RLEListExportToString(RLEList list, RLEListResult* result){
                 stringLength = i;
             }
         } 
-        char *repetitionsString = mallco((stringLength + 3)*sizeof(char));
+        char *repetitionsString = malloc((stringLength + 3)*sizeof(char));
         repetitionsString[0] = list -> val;
         for(int j = 0; j < stringLength; j++){
             repetitionsString[j+1] = repetitionsStringZero[j+stringLength];
@@ -161,7 +162,7 @@ char* RLEListExportToString(RLEList list, RLEListResult* result){
         repetitionsString[1+stringLength] = '\\';
         repetitionsString[2+stringLength] = 'n';
 
-        returnString = (char* )realloc((strlen(returnString)+stringLength)sizeof(char));
+        returnString = realloc(returnString,(strlen(returnString)+stringLength)*sizeof(char));
         if(returnString == NULL){
             resultRle = RLE_LIST_NULL_ARGUMENT;
             result = &resultRle;
