@@ -5,69 +5,47 @@
 #include "AsciiArtTool.h"
 #include "RLEList.h"
 #include <assert.h>
-#include <malloc.h>
-
-#define BUFFER_SIZE 256
-#define SMALL_BUFF 3
-
-/*
-void addBufferToRLEList(RLEList list, char buff[BUFFER_SIZE]){
-    assert(list);
-    for (int i = 0; i < BUFFER_SIZE; ++i) {
-        RLEListAppend(list,buff[i]);
-    }
-}
- */
-
-void printCharacterInFile(char ch, int recurrence, FILE* out_stream){
-    // Assumes file is open for writing
-    for (int i = 0; i < recurrence; ++i) {
-        fputc(ch, out_stream);
-    }
-}
 
 RLEList asciiArtRead(FILE* in_stream){
     assert(in_stream);
     fopen(in_stream, "r");
 
     RLEList list = RLEListCreate();
-    if (!list){
-        return NULL;
+    if (list == NULL){
+        return RLE_LIST_OUT_OF_MEMORY;
     }
-    /*
-    char buffer[BUFFER_SIZE];
-    while(fgets(buffer, BUFFER_SIZE, in_stream) != NULL){
-        addBufferToRLEList(list, buffer);
+    fopen(in_stream, "r");
+    char ch;
+    while ((fscanf(in_stream, "%c", &ch)) != EOF){
+        // Runs through all characters in file
+        RLEListResult result =  RLEListAppend(list, ch);
+        if (result == RLE_LIST_NULL_ARGUMENT || result == RLE_LIST_OUT_OF_MEMORY){
+            return NULL;
+        }
     }
-    */
-
-    char c = fgetc(in_stream);
-    while (c != EOF){
-        RLEListAppend(list, c);
-        c = fgetc(in_stream);
-    }
-
-
     fclose(in_stream);
     return list;
 }
-
 
 RLEListResult asciiArtPrint(RLEList list, FILE *out_stream){
     if (list == NULL || out_stream == NULL){
         return RLE_LIST_NULL_ARGUMENT;
     }
-    FILE* tmpFile = fopen("tmp.txt", "w+");
-    asciiArtPrintEncoded(list, tmpFile);
-    fclose(tmpFile);
-    fopen(tmpFile, "r");
-    char buffer[BUFFER_SIZE];
-    while (fgets(buffer, BUFFER_SIZE, tmpFile) != NULL){
-        printCharacterInFile(buffer[0], (int)buffer[1], out_stream);
+    fopen(out_stream, "w+");
+    int size = RLEListSize(list);
+    if (size < 0){
+        return RLE_LIST_NULL_ARGUMENT;
     }
-    fclose(tmpFile);
+    char ch;
+    for (int i = 0; i < size; ++i) {
+        //Runs through each character and prints it in the file
+        ch = RLEListGet(list, i, ch);
+        if (ch == '0'){ // Checks that we didn't get to the EOF
+            break;
+        }
+        fprintf(out_stream, "%c", ch);
+    }
     fclose(out_stream);
-
     return RLE_LIST_SUCCESS;
 }
 
