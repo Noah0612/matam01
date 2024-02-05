@@ -11,14 +11,15 @@ typedef struct RLEList_t *RLEList;
 
 RLEList RLEListCreate(){
     RLEList ptr = (RLEList)malloc(sizeof(RLEList_t));
-    if(!ptr){
+    if(ptr == NULL){
         return NULL;
     }
+    ptr -> next = NULL;/* <------------------------------------------- IMPORTANT????*/
     return ptr;
 }
 
 void RLEListDestroy(RLEList list){
-    while(list){
+    while(list != NULL){
         RLEList toDelete = list;
         list = list -> next;
         free(toDelete);
@@ -27,7 +28,7 @@ void RLEListDestroy(RLEList list){
 
 
 RLEListResult RLEListAppend(RLEList list, char value){
-    if(!list){ /*list == NULL*/
+    if(list == NULL){ /*list == NULL*/
         return RLE_LIST_NULL_ARGUMENT;
     }
     RLEList nextNode = list -> next;
@@ -48,4 +49,56 @@ RLEListResult RLEListAppend(RLEList list, char value){
     newNode -> next = NULL;
     list -> next = newNode;
     return RLE_LIST_SUCCESS;
+
+    /*
+        --------------------------------------------what if list is empty?????
+    */
+}
+
+int RLEListSize(RLEList list){
+    if(list == NULL){
+        return -1;
+    }
+    int sum = 0;
+    while(list != NULL){
+        sum += list -> repetitions;
+        list = list -> next;
+    }
+    return sum;
+}
+
+RLEListResult RLEListRemove(RLEList list, int index){
+    if(list == NULL){
+        return RLE_LIST_NULL_ARGUMENT;
+    }
+    if(index < 0 || index > RLEListSize(list)){ /*------------------also checking if index < 0 */
+        return RLE_LIST_INDEX_OUT_OF_BOUNDS;
+    }
+    int range = list -> repetitions;
+    if(index >= 0 && index <= range){ /* first time*/
+        if(list -> repetitions == 1){ /* removes entire node ----> CANNOT DELETE ENTIRE NODE BECAUSE GETTING A POINTER AND NOT DOUBLE POINTER!*/
+            RLEList toDelete = list;
+            list = list -> next;
+            free(toDelete);
+        }
+        else{
+            (list -> repetitions)--;
+        }
+        index = -1; /*get out of the loop*/
+    } 
+    while((list -> next) != NULL && index >= 0){
+        if(index >= range && index <= range + ((list -> next) -> repetitions)){ /*found the node of the index*/
+            if((list -> next) -> repetitions == 1){ /* removes entire node*/
+                RLEList ptr = list -> next;
+                list -> next = (list -> next) -> next;
+                free(ptr); 
+            }
+            else{
+                ((list -> next) -> repetitions)--;
+            }
+            index = -1; /*get out of the loop*/
+        }
+        range = range + ((list -> next) -> repetitions);
+        list = list -> next;
+    }
 }
