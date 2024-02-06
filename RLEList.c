@@ -53,7 +53,7 @@ RLEListResult RLEListAppend(RLEList list, char value){
     //going to the last node
     while((list -> next) != NULL){
         list = list -> next;
-    }    
+    }
     //if last node is empty, put values in it
     if(list -> val == -1){
         list -> val = value;
@@ -98,7 +98,7 @@ RLEListResult RLEListRemove(RLEList list, int index){
     }
 
     //checks if the index is out of bound
-    if(index < 0 || index > RLEListSize(list)){
+    if(index < 0 || index >= RLEListSize(list)){
         return RLE_LIST_INDEX_OUT_OF_BOUNDS;
     }
 
