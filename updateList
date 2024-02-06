@@ -1,0 +1,25 @@
+RLEListResult updateList(RLEList list){
+    if (list == NULL){
+        return RLE_LIST_NULL_ARGUMENT;
+    }
+    RLEList thisNode = list;
+    RLEList nextNode = thisNode -> next;
+    if (nextNode == NULL){
+        return RLE_LIST_SUCCESS;
+    }
+    
+    while ((thisNode -> next) != NULL){
+        // Runs through all List and combines two consecutive nodes with the same value
+        if ((thisNode -> value) == (nextNode -> value)){
+            thisNode -> repetitions += nextNode -> repetitions;
+            thisNode -> next = nextNode -> next;
+            // Deletes next node
+            nextNode -> next = NULL;
+            RLEListDestroy(nextNode);
+            continue; // Checks if values are different with new "nextNode"
+        }
+        thisNode = nextNode;
+        nextNode = nextNode -> next;
+    }
+    return RLE_LIST_SUCCESS;
+}
