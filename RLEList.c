@@ -171,3 +171,14 @@ char* RLEListExportToString(RLEList list, RLEListResult* result){ /*fix return v
     result = RLE_LIST_SUCCESS;
     return returnString;
 }
+
+RLEListResult RLEListMap(RLEList list, MapFunction map_function){ /* typedef char (*MapFunction)(char); */
+    if(list == NULL || map_function == NULL){
+        return RLE_LIST_NULL_ARGUMENT;
+    }
+    while(list != NULL){
+        list -> val = map_function(list -> val);
+        list = list -> next;
+    }
+    return RLE_LIST_SUCCESS;
+}
