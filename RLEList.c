@@ -172,7 +172,7 @@ char* RLEListExportToString(RLEList list, RLEListResult* result){ /*fix return v
     return returnString;
 }
 
-RLEListResult RLEListMap(RLEList list, MapFunction map_function){ /* typedef char (*MapFunction)(char); */
+RLEListResult RLEListMap(RLEList list, MapFunction map_function){
     if(list == NULL || map_function == NULL){
         return RLE_LIST_NULL_ARGUMENT;
     }
