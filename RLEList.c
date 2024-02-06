@@ -11,6 +11,8 @@ struct RLEList_t{
 
 typedef struct RLEList_t *RLEList;
 
+char* intToString(int num);
+
 RLEList RLEListCreate(){
     RLEList ptr = (RLEList)malloc(sizeof(RLEList));
     if(ptr == NULL){
@@ -71,7 +73,8 @@ RLEListResult RLEListRemove(RLEList list, int index){
     if(list == NULL){
         return RLE_LIST_NULL_ARGUMENT;
     }
-    if(index < 0 || index > RLEListSize(list)){ /*------------------also checking if index < 0 */
+
+    if(index < 0 || index > RLEListSize(list)){
         return RLE_LIST_INDEX_OUT_OF_BOUNDS;
     }
 
@@ -147,12 +150,15 @@ char* RLEListExportToString(RLEList list, RLEListResult* result){ /*fix return v
     }
 
     while(list != NULL){
-        char *repetitionsString = malloc(12*sizeof(char)); /* maximum length of an int is 12 ~ 4 BILLION */
-        sprintf(repetitionsString, "%d", list -> repetitions);
+        char *repetitionsString = intToString(list -> repetitions);
 
         int stringLength = strlen(repetitionsString); /* returns the size of the numer (list -> repetitions) */
 
         char *nodeString = malloc((stringLength + 2)*sizeof(char));
+        if(nodeString == NULL){
+            *result = RLE_LIST_NULL_ARGUMENT;
+            return NULL;
+        }
         nodeString[0] = list -> val;
         for(int j = 0; j < stringLength; j++){
             nodeString[j+1] = repetitionsString[j]; /* nodeString is j+1 because it has (list -> val) in place 0 */
@@ -172,13 +178,46 @@ char* RLEListExportToString(RLEList list, RLEListResult* result){ /*fix return v
     return returnString;
 }
 
-RLEListResult RLEListMap(RLEList list, MapFunction map_function){
+RLEListResult RLEListMap(RLEList list, MapFunction map_function){ /* typedef char (*MapFunction)(char); */
     if(list == NULL || map_function == NULL){
         return RLE_LIST_NULL_ARGUMENT;
     }
     while(list != NULL){
         list -> val = map_function(list -> val);
+        while(list -> next != NULL && list -> val == map_function((list -> next) -> val)){
+            list -> repetitions += ( list -> next ) -> repetitions;
+            RLEList toDelete = list -> next; 
+            list -> next = (list -> next) -> next;
+            free(toDelete);
+        }
         list = list -> next;
     }
-    return RLE_LIST_SUCCESS;
+    return RLE_LIST_SUCCESS; 
+
+}
+
+/*
+    this function return a char array with the number num as a string
+*/
+char* intToString(int num){
+    int intSize = 1;
+    int sizeCheck = 10;
+    while(num >= sizeCheck){
+        intSize++;
+        sizeCheck *= 10;
+    }
+
+    sizeCheck = sizeCheck/10; /* the length of sizeCheck is equal to the length of intSize */
+
+    char *returnString = malloc(intSize*sizeof(char));
+    if(returnString == NULL){
+        return NULL;
+    }
+    for(int i = 0; i < intSize; i++){
+        returnString[i] = (num - (num % sizeCheck))/sizeCheck + 48; /* found the i digit from the left*/
+        num -= (returnString[i]-48)*sizeCheck;
+        sizeCheck = sizeCheck/10;  
+    }
+
+    return returnString;
 }
