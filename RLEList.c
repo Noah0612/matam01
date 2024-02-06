@@ -53,16 +53,16 @@ RLEListResult RLEListAppend(RLEList list, char value){
     //going to the last node
     while((list -> next) != NULL){
         list = list -> next;
-    }                
-    //list is the last node. Check if we need to add a new node or not
-    if(list -> val == value){                      
-        list -> repetitions ++;
-        return RLE_LIST_SUCCESS;
-    }
-    //last node is empty, put values in it
-    else if(list -> val == -1){
+    }    
+    //if last node is empty, put values in it
+    if(list -> val == -1){
         list -> val = value;
         list -> repetitions = 1;
+        return RLE_LIST_SUCCESS;
+    }            
+    //Check if we need to add a new node or not
+    else if(list -> val == value){                      
+        list -> repetitions ++;
         return RLE_LIST_SUCCESS;
     }
     //Create a new node
