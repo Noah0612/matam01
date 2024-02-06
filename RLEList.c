@@ -3,23 +3,38 @@
 #include <string.h>
 #include "RLEList.h"
 
+typedef enum Boolean{False, True}Boolean;
+
 struct RLEList_t{
     char val;
     int repetitions;
+    Boolean isDummy;
     struct RLEList_t *next;
 };
 
 typedef struct RLEList_t *RLEList;
 
 char* intToString(int num);
+RLEListResult updateList(RLEList list);
 
-RLEList RLEListCreate(){
+RLEList RLEListCreate(){ 
+    //creates a dummy node followed by a real node
+    RLEList dummyPtr = (RLEList)malloc(sizeof(RLEList));
+    if(dummyPtr == NULL){
+        return NULL;
+    }
+    dummyPtr -> isDummy = True;
+
+    //creates the real node
     RLEList ptr = (RLEList)malloc(sizeof(RLEList));
     if(ptr == NULL){
         return NULL;
     }
-    ptr -> next = NULL;/* <------------------------------------------- IMPORTANT????*/
-    return ptr;
+    dummyPtr -> next = ptr;
+    //puts -1 in (ptr -> val) to help us know if the node is initialized
+    //note the -1 is not a possible value for a char
+    ptr -> val = -1;
+    return dummyPtr;
 }
 
 void RLEListDestroy(RLEList list){
@@ -35,32 +50,40 @@ RLEListResult RLEListAppend(RLEList list, char value){
     if(list == NULL){
         return RLE_LIST_NULL_ARGUMENT;
     }
-    while((list -> next) != NULL){                               /*going to the last node */
+    //going to the last node
+    while((list -> next) != NULL){
         list = list -> next;
-    }                                              /* list is the last node */
-    if(list -> val == value){                      /*checking if need to create new node*/
+    }                
+    //list is the last node. Check if we need to add a new node or not
+    if(list -> val == value){                      
         list -> repetitions ++;
         return RLE_LIST_SUCCESS;
     }
+    //last node is empty, put values in it
+    else if(list -> val == -1){
+        list -> val = value;
+        list -> repetitions = 1;
+        return RLE_LIST_SUCCESS;
+    }
+    //Create a new node
     RLEList newNode = malloc(sizeof(RLEList));
-    if(!newNode){
+    if(newNode == NULL){
         return RLE_LIST_OUT_OF_MEMORY;
     }
+    //add the new node to the end of the list
     newNode -> val = value;
     newNode -> repetitions = 1;
     newNode -> next = NULL;
     list -> next = newNode;
+    //node added successfully
     return RLE_LIST_SUCCESS;
-
-    /*
-        --------------------------------------------what if list is empty?????
-    */
 }
 
 int RLEListSize(RLEList list){
     if(list == NULL){
         return -1;
     }
+    //going through the list and sum the number of repetitons of each node
     int sum = 0;
     while(list != NULL){
         sum += list -> repetitions;
@@ -74,46 +97,43 @@ RLEListResult RLEListRemove(RLEList list, int index){
         return RLE_LIST_NULL_ARGUMENT;
     }
 
+    //checks if the index is out of bound
     if(index < 0 || index > RLEListSize(list)){
         return RLE_LIST_INDEX_OUT_OF_BOUNDS;
     }
 
-    int range = list -> repetitions;
+    //make a copy of the list for later use - when reorganizing the list at the end
+    RLEList listCopy = list;
 
-    if(index >= 0 && index < range){ /* first time*/
-        printf("index >= 0 && index <= range\n");
-        if(list -> repetitions == 1){ 
-            /*
-            *                           PROBLEM!
-                what happend if the index is in the first node? I cannot change
-                the (RLEList list) to list -> next beacuse it is not a pointer to a pointer.
-            */
-            RLEList toDelete = list;
-            list = list -> next;
-            free(toDelete);
-        }
-        else{
-            (list -> repetitions)--;
-        }
-        return RLE_LIST_SUCCESS;
-    } 
-
-    while((list -> next) != NULL && index >= 0){
-        if(index >= range && index < range + ((list -> next) -> repetitions)){ /*found the node of the index*/
-            if((list -> next) -> repetitions == 1){ /* removes entire node */
-                RLEList ptr = list -> next;
-                list -> next = (list -> next) -> next;
-                free(ptr); 
+    // looking one node ahead for us to be able to delete it
+    RLEList currentNode = list -> next; 
+    //search for the node of the index
+    int rangeBeginning = 0;
+    int rangeEnd = currentNode -> repetitions;
+    while(currentNode != NULL){
+        //search for index in range
+        if(index >= rangeBeginning && index < rangeEnd){
+            //removes currentNode if necessary
+            if(currentNode -> repetitions == 1){
+                list -> next = currentNode -> next;
+                free(currentNode); 
             }
             else{
                 ((list -> next) -> repetitions)--;
             }
+            //reorganize the list
+            RLEListResult result = updateList(listCopy);
             return RLE_LIST_SUCCESS;
         }
-        range = range + ((list -> next) -> repetitions);
+        //countinue looking in the next node
+        currentNode = currentNode -> next;
         list = list -> next;
+        rangeBeginning = rangeEnd;
+        rangeEnd += currentNode -> repetitions;
     }
-    return -1; /* SHOULD NEVER BE HERE */
+
+    //return unreachable value
+    return -1;
 }
 
 char RLEListGet(RLEList list, int index, RLEListResult *result){
@@ -121,7 +141,7 @@ char RLEListGet(RLEList list, int index, RLEListResult *result){
         *result = RLE_LIST_NULL_ARGUMENT;
         return 0;
     }
-    if(index < 0 || index > RLEListSize(list)){
+    if(index < 0 || index >= RLEListSize(list)){
         *result = RLE_LIST_INDEX_OUT_OF_BOUNDS;
         return 0;
     }
@@ -193,7 +213,6 @@ RLEListResult RLEListMap(RLEList list, MapFunction map_function){ /* typedef cha
         list = list -> next;
     }
     return RLE_LIST_SUCCESS; 
-
 }
 
 /*
@@ -220,4 +239,33 @@ char* intToString(int num){
     }
 
     return returnString;
+}
+
+RLEListResult updateList(RLEList list){
+    if (list == NULL){
+        return RLE_LIST_NULL_ARGUMENT;
+    }
+    RLEList thisNode = list;
+    RLEList nextNode = thisNode -> next;
+    if (nextNode == NULL){
+        return RLE_LIST_SUCCESS;
+    }
+    
+    while ((thisNode -> next) != NULL){
+        // Runs through all List and combines two consecutive nodes with the same value
+        if ((thisNode -> val) == (nextNode -> val)){
+            thisNode -> repetitions += nextNode -> repetitions;
+            thisNode -> next = nextNode -> next;
+            // Deletes next node
+            /*
+            nextNode -> next = NULL;
+            RLEListDestroy(nextNode);
+            */
+            free(nextNode);
+            continue; // Checks if values are different with new "nextNode"
+        }
+        thisNode = nextNode;
+        nextNode = nextNode -> next;
+    }
+    return RLE_LIST_SUCCESS;
 }
