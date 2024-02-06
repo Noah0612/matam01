@@ -32,7 +32,7 @@ RLEList RLEListCreate(){
     }
     dummyPtr -> next = ptr;
     //puts -1 in (ptr -> val) to help us know if the node is initialized
-    //note the -1 is not a possible value for a char
+    //note that -1 is not a possible value for a char
     ptr -> val = -1;
     return dummyPtr;
 }
