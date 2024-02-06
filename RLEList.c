@@ -257,10 +257,6 @@ RLEListResult updateList(RLEList list){
             thisNode -> repetitions += nextNode -> repetitions;
             thisNode -> next = nextNode -> next;
             // Deletes next node
-            /*
-            nextNode -> next = NULL;
-            RLEListDestroy(nextNode);
-            */
             free(nextNode);
             continue; // Checks if values are different with new "nextNode"
         }
