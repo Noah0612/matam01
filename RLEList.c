@@ -142,20 +142,35 @@ char RLEListGet(RLEList list, int index, RLEListResult *result){
         *result = RLE_LIST_NULL_ARGUMENT;
         return 0;
     }
+
+    //checks if the index is out of bounds
     if(index < 0 || index >= RLEListSize(list)){
         *result = RLE_LIST_INDEX_OUT_OF_BOUNDS;
         return 0;
     }
-    int range = 0;
-    while(list != NULL){
-        if(index >= range && index < range + (list -> repetitions)){ /*found the node of the index*/
+
+    //skipping the first 'dummy' node
+    RLEList currentNode = list -> next;
+
+    //searching for the index in the nodes range
+    int rangeBeginning = 0;
+    int rangeEnd = 0;
+    while(currentNode != NULL){
+        //moving the range
+        rangeBeginning = rangeEnd;
+        rangeEnd += currentNode -> repetitions;
+
+        if(index >= rangeBeginning && index < rangeEnd){
             *result = RLE_LIST_SUCCESS;
-            return list -> val;
+            return currentNode -> val;
         }
-        range = range + (list -> repetitions);
-        list = list -> next;
+
+        //countinue searching in the next node
+        currentNode = currentNode -> next;
     }
-    return -1; /* SHOULD NEVER BE HERE */
+    
+    //return unreachable value
+    return -1;
 }
 
 char* RLEListExportToString(RLEList list, RLEListResult* result){ /*fix return value!!!*/
@@ -227,14 +242,14 @@ char* intToString(int num){
         sizeCheck *= 10;
     }
 
-    sizeCheck = sizeCheck/10; /* the length of sizeCheck is equal to the length of intSize */
+    sizeCheck = sizeCheck/10; 
 
     char *returnString = malloc(intSize*sizeof(char));
     if(returnString == NULL){
         return NULL;
     }
     for(int i = 0; i < intSize; i++){
-        returnString[i] = (num - (num % sizeCheck))/sizeCheck + 48; /* found the i digit from the left*/
+        returnString[i] = (num - (num % sizeCheck))/sizeCheck + 48;
         num -= (returnString[i]-48)*sizeCheck;
         sizeCheck = sizeCheck/10;  
     }
