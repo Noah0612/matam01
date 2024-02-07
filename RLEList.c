@@ -231,31 +231,41 @@ RLEListResult RLEListMap(RLEList list, MapFunction map_function){ /* typedef cha
     return RLE_LIST_SUCCESS; 
 }
 
-/*
-    this function return a char array with the number num as a string
-*/
+//returns a char array with the number num as a string
 char* intToString(int num){
-    int intSize = 1;
-    int sizeCheck = 10;
-    while(num >= sizeCheck){
-        intSize++;
-        sizeCheck *= 10;
+    int numDigits = 1;
+    int divisor = 10;
+
+    //finding the number of digits in num
+    while(num >= divisor){
+        numDigits++;
+        divisor *= 10;
     }
 
-    sizeCheck = sizeCheck/10; 
+    //the number of digits in (divisor/10) is uqeal to the number of digits in num
+    divisor = divisor/10; 
 
-    char *returnString = malloc(intSize*sizeof(char));
+    //creates a string the size of number of digits in num
+    char *returnString = malloc(numDigits*sizeof(char));
     if(returnString == NULL){
         return NULL;
     }
-    for(int i = 0; i < intSize; i++){
-        returnString[i] = (num - (num % sizeCheck))/sizeCheck + 48;
-        num -= (returnString[i]-48)*sizeCheck;
-        sizeCheck = sizeCheck/10;  
+
+    //put values in returnString
+    for(int i = 0; i < numDigits; i++){
+        // the number ((num - (num % divisor))/divisor) is equal to the i digit from the left in num
+        //add the ASCII_ZERO to make it a char
+        returnString[i] = ((num - (num % divisor))/divisor) + ASCII_ZERO;
+
+        //moving to the next digit
+        //removing the leftmost digit in num
+        num -= num - (num % divisor);
+        divisor = divisor/10;  
     }
 
     return returnString;
 }
+
 
 RLEListResult updateList(RLEList list){
     if (list == NULL){
