@@ -143,13 +143,15 @@ RLEListResult RLEListRemove(RLEList list, int index){
 
 char RLEListGet(RLEList list, int index, RLEListResult *result){
     if(list == NULL){
-        *result = RLE_LIST_NULL_ARGUMENT;
+        if(result != NULL){
+            *result = RLE_LIST_NULL_ARGUMENT;
+            return 0;
+        }
         return 0;
     }
-
     //Checks if the index is out of bounds
     if(index < 0 || index >= RLEListSize(list)){
-        *result = RLE_LIST_INDEX_OUT_OF_BOUNDS;
+        //*result = RLE_LIST_INDEX_OUT_OF_BOUNDS;
         return 0;
     }
 
@@ -165,7 +167,10 @@ char RLEListGet(RLEList list, int index, RLEListResult *result){
         rangeEnd += currentNode -> repetitions;
 
         if(index >= rangeBeginning && index < rangeEnd){
-            *result = RLE_LIST_SUCCESS;
+            if(result != NULL){
+                *result = RLE_LIST_SUCCESS;
+                return currentNode -> val;
+            }
             return currentNode -> val;
         }
 
