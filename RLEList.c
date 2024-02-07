@@ -18,7 +18,7 @@ char* intToString(int num);
 RLEListResult updateList(RLEList list);
 
 RLEList RLEListCreate(){ 
-    //creates a dummy node followed by a real node
+    //creates a 'dummy' node followed by a real node
     RLEList dummyPtr = (RLEList)malloc(sizeof(RLEList));
     if(dummyPtr == NULL){
         return NULL;
@@ -97,17 +97,18 @@ RLEListResult RLEListRemove(RLEList list, int index){
         return RLE_LIST_NULL_ARGUMENT;
     }
 
-    //checks if the index is out of bound
+    //checks if the index is out of bounds
     if(index < 0 || index >= RLEListSize(list)){
         return RLE_LIST_INDEX_OUT_OF_BOUNDS;
     }
 
-    //make a copy of the list for later use - when reorganizing the list at the end
+    //make a copy of the list for later use (when reorganizing the list at the end)
     RLEList listCopy = list;
 
     // looking one node ahead for us to be able to delete it
+    //we will start with the first 'real' node and not the 'dummy' node
     RLEList currentNode = list -> next; 
-    //search for the node of the index
+    //search for the index in each node range
     int rangeBeginning = 0;
     int rangeEnd = currentNode -> repetitions;
     while(currentNode != NULL){
@@ -119,9 +120,9 @@ RLEListResult RLEListRemove(RLEList list, int index){
                 free(currentNode); 
             }
             else{
-                ((list -> next) -> repetitions)--;
+                (currentNode -> repetitions)--;
             }
-            //reorganize the list
+            //reorganize the list before returning
             RLEListResult result = updateList(listCopy);
             return RLE_LIST_SUCCESS;
         }
