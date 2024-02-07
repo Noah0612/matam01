@@ -34,6 +34,7 @@ RLEList RLEListCreate(){
     if(ptr == NULL){
         return NULL;
     }
+    ptr -> next = NULL;
     dummyPtr -> next = ptr;
     //Puts -1 in (ptr -> val) to help us know if the node is initialized
     //Note that -1 is not a possible value for a char
@@ -87,6 +88,8 @@ int RLEListSize(RLEList list){
     if(list == NULL){
         return -1;
     }
+    //Skipping the 'dummy' node
+    list = list -> next;
     //Going through the list and sum the number of repetitons of each node
     int sum = 0;
     while(list != NULL){
@@ -151,31 +154,34 @@ char RLEListGet(RLEList list, int index, RLEListResult *result){
     }
     //Checks if the index is out of bounds
     if(index < 0 || index >= RLEListSize(list)){
-        //*result = RLE_LIST_INDEX_OUT_OF_BOUNDS;
+        if(result != NULL){
+            *result = RLE_LIST_INDEX_OUT_OF_BOUNDS;
+            return 0;
+        }
         return 0;
     }
 
     //Skipping the first 'dummy' node
-    RLEList currentNode = list -> next;
+    list = list -> next;
 
     //Searching for the index in the nodes range
     int rangeBeginning = 0;
     int rangeEnd = 0;
-    while(currentNode != NULL){
+    while(list != NULL){
         //Moving the range
         rangeBeginning = rangeEnd;
-        rangeEnd += currentNode -> repetitions;
+        rangeEnd += list -> repetitions;
 
         if(index >= rangeBeginning && index < rangeEnd){
             if(result != NULL){
                 *result = RLE_LIST_SUCCESS;
-                return currentNode -> val;
+                return list -> val;
             }
-            return currentNode -> val;
+            return list -> val;
         }
 
         //Countinue searching in the next node
-        currentNode = currentNode -> next;
+        list = list -> next;
     }
     
     //Return unreachable value
@@ -183,8 +189,11 @@ char RLEListGet(RLEList list, int index, RLEListResult *result){
 }
 
 char* RLEListExportToString(RLEList list, RLEListResult* result){
-    if(list == NULL || result == NULL){
-        *result = RLE_LIST_NULL_ARGUMENT;
+    if(list == NULL){
+        if(result != NULL){
+            *result = RLE_LIST_NULL_ARGUMENT;
+            return NULL;
+        }
         return NULL;
     }
 
@@ -196,7 +205,10 @@ char* RLEListExportToString(RLEList list, RLEListResult* result){
     int returnStringSize = (numOfNodes(list)*2 + numOfDigits(list) + 1);
     char* returnString = malloc(returnStringSize*sizeof(char));
     if(returnString == NULL){
-        *result = RLE_LIST_OUT_OF_MEMORY;
+        if(result != NULL){
+            *result = RLE_LIST_OUT_OF_MEMORY;
+            return NULL;
+        }
         return NULL;
     }
 
@@ -208,7 +220,10 @@ char* RLEListExportToString(RLEList list, RLEListResult* result){
         char* repetitionsString = intToString(list -> repetitions);
         if(repetitionsString == NULL){
             free(returnString);
-            *result = RLE_LIST_OUT_OF_MEMORY;
+            if(result != NULL){
+                *result = RLE_LIST_OUT_OF_MEMORY;
+                return NULL;
+            }
             return NULL;
         }
         //Assigning values to returnString 
@@ -228,7 +243,10 @@ char* RLEListExportToString(RLEList list, RLEListResult* result){
 
     //Putting '\0' at the end of the return string
     returnString[returnStringSize - 1] = '\0';
+    if(result != NULL){  
     *result = RLE_LIST_SUCCESS;
+    return returnString;
+    }
     return returnString;
 }
 
