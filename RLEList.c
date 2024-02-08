@@ -14,8 +14,6 @@ struct RLEList_t{
     struct RLEList_t *next;
 };
 
-typedef struct RLEList_t *RLEList;
-
 char* intToString(int num);
 void updateList(RLEList list);
 int numOfNodes(RLEList list);
