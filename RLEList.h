@@ -144,7 +144,7 @@ char* RLEListExportToString(RLEList list, RLEListResult* result);
 * @param MapFunction - Pointer to a function of type MapFunction. 
 * @return
 * 	RLE_LIST_NULL_ARGUMENT if a NULL was sent as a paramater.
-* 	LIST_SUCCESS if the mapping is done successfully.
+* 	RLE_LIST_SUCCESS if the mapping is done successfully.
 */
 RLEListResult RLEListMap(RLEList list, MapFunction map_function);
 
