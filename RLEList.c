@@ -105,8 +105,10 @@ RLEListResult RLEListRemove(RLEList list, int index){
         return RLE_LIST_NULL_ARGUMENT;
     }
 
+    int originalListSize = RLEListSize(list);
+
     //Checks if the index is out of bounds
-    if(index < 0 || index >= RLEListSize(list)){
+    if(index < 0 || index >= originalListSize){
         return RLE_LIST_INDEX_OUT_OF_BOUNDS;
     }
 
@@ -114,7 +116,7 @@ RLEListResult RLEListRemove(RLEList list, int index){
     RLEList listCopy = list;
 
     //Looking one node ahead for us to be able to delete it
-    //We will start with the first 'real' node and not the 'dummy' node
+    //skipping the 'dummy' node
     RLEList currentNode = list -> next; 
     //Search for the index in each node range
     int rangeBeginning = 0;
@@ -125,9 +127,9 @@ RLEListResult RLEListRemove(RLEList list, int index){
             //Removes currentNode if necessary
             if(currentNode -> repetitions == 1){
                 //If the size of the list is 1, dont remove the node just change it to empty value
-                if(RLEListSize(list) == 1){
-                    list -> val = -1;
-                    list -> repetitions = 0;
+                if(originalListSize == 1){
+                    currentNode -> val = -1;
+                    currentNode -> repetitions = 0;
                     return RLE_LIST_SUCCESS;
                 }
                 list -> next = currentNode -> next;
@@ -320,6 +322,11 @@ int numOfNodes(RLEList list){
     }
     //Skipping the 'dummy' node
     list = list -> next;
+
+    //list is not intialized yet, size is 0
+    if(list -> val == -1){
+        return 0;
+    }
     //Going through the list and counting the nodes
     int count = 0;
     while(list != NULL){
@@ -336,6 +343,10 @@ int numOfDigits(RLEList list){
     }
     //Skipping the 'dummy' node
     list = list -> next;
+    //return 0 if list is not intialized yet
+    if(list -> val == -1){
+        return 0;
+    }
     //Starting to count
     int sum = 0;
     while(list != NULL){
