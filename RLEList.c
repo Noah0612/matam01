@@ -34,11 +34,12 @@ RLEList RLEListCreate(){
     if(ptr == NULL){
         return NULL;
     }
-    ptr -> next = NULL;
     dummyPtr -> next = ptr;
     //Puts -1 in (ptr -> val) to help us know if the node is initialized
     //Note that -1 is not a possible value for a char
     ptr -> val = -1;
+    ptr -> repetitions = 0;
+    ptr -> next = NULL;
     return dummyPtr;
 }
 
@@ -123,6 +124,12 @@ RLEListResult RLEListRemove(RLEList list, int index){
         if(index >= rangeBeginning && index < rangeEnd){
             //Removes currentNode if necessary
             if(currentNode -> repetitions == 1){
+                //If the size of the list is 1, dont remove the node just change it to empty value
+                if(RLEListSize(list) == 1){
+                    list -> val = -1;
+                    list -> repetitions = 0;
+                    return RLE_LIST_SUCCESS;
+                }
                 list -> next = currentNode -> next;
                 free(currentNode); 
             }
@@ -199,7 +206,7 @@ char* RLEListExportToString(RLEList list, RLEListResult* result){
 
     //Allocates memory for a return string.
     //The size of the string equals to the sum of:
-    //  1) num of nodes in the list multiplie by 2 -> every node donates two chars : (node -> val) and '\n'
+    //  1) num of nodes in the list multiplie by 2 -> every node donates two charcters : (node -> val) and '\n'
     //  2) sum of digits of the repetitions
     //  3) +1 for '\0' at the end of the string to make it null terminated
     int returnStringSize = (numOfNodes(list)*2 + numOfDigits(list) + 1);
@@ -244,8 +251,8 @@ char* RLEListExportToString(RLEList list, RLEListResult* result){
     //Putting '\0' at the end of the return string
     returnString[returnStringSize - 1] = '\0';
     if(result != NULL){  
-    *result = RLE_LIST_SUCCESS;
-    return returnString;
+        *result = RLE_LIST_SUCCESS;
+        return returnString;
     }
     return returnString;
 }
