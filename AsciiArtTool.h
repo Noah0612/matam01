@@ -28,11 +28,11 @@
 * 	NULL if allocations failed.
 * 	A new RLEList that includes all characters in the file.
 */
-RLEList asciiArtRead(FILE* in_stream);
+RLEList asciiArtRead(char* fileName);
 
-RLEListResult asciiArtPrint(RLEList list, FILE *out_stream);
+RLEListResult asciiArtPrint(RLEList list, char* fileName);
 
-RLEListResult asciiArtPrintEncoded(RLEList list, FILE *out_stream);
+RLEListResult asciiArtPrintEncoded(RLEList list, char* fileName);
 
 // TO DELETE
 

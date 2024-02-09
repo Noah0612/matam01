@@ -4,11 +4,12 @@
 #include "RLEList.h"
 
 #define ASCII_ZERO 48
+#define NOT_INITIALIZED -1
 
 typedef enum Boolean{False, True}Boolean;
 
 struct RLEList_t{
-    char val;
+    char value;
     int repetitions;
     Boolean isDummy;
     struct RLEList_t *next;
@@ -19,25 +20,32 @@ void updateList(RLEList list);
 int numOfNodes(RLEList list);
 int numOfDigits(RLEList list);
 
-RLEList RLEListCreate(){ 
+RLEList createNode(){
+    RLEList node = malloc(sizeof (RLEList));
+    if (!node){
+        return NULL;
+    }
+    node -> value = NOT_INITIALIZED;
+    node -> next = NULL;
+    node -> isDummy = False;
+    return node;
+}
+
+RLEList RLEListCreate(){
     //Creates a 'dummy' node followed by a real node
-    RLEList dummyPtr = (RLEList)malloc(sizeof(RLEList));
-    if(dummyPtr == NULL){
+    RLEList dummyPtr = createNode();
+    if(!dummyPtr){
         return NULL;
     }
     dummyPtr -> isDummy = True;
 
     //Creates the real node
-    RLEList ptr = (RLEList)malloc(sizeof(RLEList));
-    if(ptr == NULL){
+    RLEList firstNode = createNode();
+    if(!firstNode){
         return NULL;
     }
-    dummyPtr -> next = ptr;
-    //Puts -1 in (ptr -> val) to help us know if the node is initialized
-    //Note that -1 is not a possible value for a char
-    ptr -> val = -1;
-    ptr -> repetitions = 0;
-    ptr -> next = NULL;
+
+    dummyPtr -> next = firstNode;
     return dummyPtr;
 }
 
@@ -49,8 +57,8 @@ void RLEListDestroy(RLEList list){
     }
 }
 
-
 RLEListResult RLEListAppend(RLEList list, char value){
+    /*
     if(list == NULL){
         return RLE_LIST_NULL_ARGUMENT;
     }
@@ -59,13 +67,13 @@ RLEListResult RLEListAppend(RLEList list, char value){
         list = list -> next;
     }
     //If last node is empty, put values in it
-    if(list -> val == -1){
-        list -> val = value;
+    if(list -> value == NOT_INITIALIZED){
+        list -> value = value;
         list -> repetitions = 1;
         return RLE_LIST_SUCCESS;
-    }            
-    //Check if we need to add a new node or not
-    else if(list -> val == value){                      
+    }
+        //Check if we need to add a new node or not
+    else if(list -> value == value){
         list -> repetitions ++;
         return RLE_LIST_SUCCESS;
     }
@@ -75,11 +83,35 @@ RLEListResult RLEListAppend(RLEList list, char value){
         return RLE_LIST_OUT_OF_MEMORY;
     }
     //Add the new node to the end of the list
-    newNode -> val = value;
+    newNode -> value = value;
     newNode -> repetitions = 1;
     newNode -> next = NULL;
     list -> next = newNode;
     //Node added successfully
+     */
+    if (list == NULL || value <= 0){
+        return RLE_LIST_NULL_ARGUMENT;
+    }
+    // Skips dummy
+    RLEList node = list -> next;
+    // Gets to last node
+    while (node -> next != NULL){
+        node = node -> next;
+    }
+    //Checks if it's the same character
+    if (node -> value == value){
+        node -> repetitions++;
+        return RLE_LIST_SUCCESS;
+    }
+
+    RLEList newNode = createNode();
+    if (!newNode){
+        return RLE_LIST_OUT_OF_MEMORY;
+    }
+    newNode -> value = value;
+
+    node -> next = newNode;
+
     return RLE_LIST_SUCCESS;
 }
 
@@ -115,7 +147,7 @@ RLEListResult RLEListRemove(RLEList list, int index){
 
     //Looking one node ahead for us to be able to delete it
     //skipping the 'dummy' node
-    RLEList currentNode = list -> next; 
+    RLEList currentNode = list -> next;
     //Search for the index in each node range
     int rangeBeginning = 0;
     int rangeEnd = currentNode -> repetitions;
@@ -126,12 +158,12 @@ RLEListResult RLEListRemove(RLEList list, int index){
             if(currentNode -> repetitions == 1){
                 //If the size of the list is 1, dont remove the node just change it to empty value
                 if(originalListSize == 1){
-                    currentNode -> val = -1;
+                    currentNode -> value = NOT_INITIALIZED;
                     currentNode -> repetitions = 0;
                     return RLE_LIST_SUCCESS;
                 }
                 list -> next = currentNode -> next;
-                free(currentNode); 
+                free(currentNode);
             }
             else{
                 (currentNode -> repetitions)--;
@@ -147,8 +179,7 @@ RLEListResult RLEListRemove(RLEList list, int index){
         rangeEnd += currentNode -> repetitions;
     }
 
-    //Return unreachable value
-    return -1;
+    return RLE_LIST_ERROR;
 }
 
 char RLEListGet(RLEList list, int index, RLEListResult *result){
@@ -182,15 +213,15 @@ char RLEListGet(RLEList list, int index, RLEListResult *result){
         if(index >= rangeBeginning && index < rangeEnd){
             if(result != NULL){
                 *result = RLE_LIST_SUCCESS;
-                return list -> val;
+                return list -> value;
             }
-            return list -> val;
+            return list -> value;
         }
 
         //Countinue searching in the next node
         list = list -> next;
     }
-    
+
     //Return unreachable value
     return -1;
 }
@@ -206,7 +237,7 @@ char* RLEListExportToString(RLEList list, RLEListResult* result){
 
     //Allocates memory for a return string.
     //The size of the string equals to the sum of:
-    //  1) num of nodes in the list multiplie by 2 -> every node donates two charcters : (node -> val) and '\n'
+    //  1) num of nodes in the list multiplie by 2 -> every node donates two charcters : (node -> value) and '\n'
     //  2) sum of digits of the repetitions
     //  3) +1 for '\0' at the end of the string to make it null terminated
     int returnStringSize = (numOfNodes(list)*2 + numOfDigits(list) + 1);
@@ -233,10 +264,10 @@ char* RLEListExportToString(RLEList list, RLEListResult* result){
             }
             return NULL;
         }
-        //Assigning values to returnString 
+        //Assigning values to returnString
         int repetitionsDigits = strlen(repetitionsString);
-        returnString[index] = list -> val;
-        for(int j = 0; j < repetitionsDigits; j++){ 
+        returnString[index] = list -> value;
+        for(int j = 0; j < repetitionsDigits; j++){
             returnString[index + j + 1] = repetitionsString[j];
         }
         returnString[index + repetitionsDigits + 1] = '\n';
@@ -250,7 +281,7 @@ char* RLEListExportToString(RLEList list, RLEListResult* result){
 
     //Putting '\0' at the end of the return string
     returnString[returnStringSize - 1] = '\0';
-    if(result != NULL){  
+    if(result != NULL){
         *result = RLE_LIST_SUCCESS;
         return returnString;
     }
@@ -258,22 +289,22 @@ char* RLEListExportToString(RLEList list, RLEListResult* result){
 }
 
 RLEListResult RLEListMap(RLEList list, MapFunction map_function){
-    
+
     if(list == NULL || map_function == NULL){
         return RLE_LIST_NULL_ARGUMENT;
     }
     //Make a copy of the list for later use (when reorganizing the list)
-    
+
     RLEList listCopy = list;
     //Skipping the 'dummy' node
-    
+
     list = list -> next;
     while(list != NULL){
-        list -> val = map_function(list -> val);
+        list -> value = map_function(list -> value);
         list = list -> next;
     }
     updateList(listCopy);
-    return RLE_LIST_SUCCESS; 
+    return RLE_LIST_SUCCESS;
 }
 
 //Returns a char array with the number num as a string
@@ -288,7 +319,7 @@ char* intToString(int num){
     }
 
     //The number of digits in (divisor/10) is uqeal to the number of digits in num
-    divisor = divisor/10; 
+    divisor = divisor/10;
 
     //Creates a string the size of the number of digits in num + 1 to add '\0' at the end
     char *returnString = malloc((numDigits+1)*sizeof(char));
@@ -305,7 +336,7 @@ char* intToString(int num){
         //Moving to the next digit
         //Removing the leftmost digit in num
         num -= num - (num % divisor);
-        divisor = divisor/10;  
+        divisor = divisor/10;
     }
     //Make the string null terminated
     returnString[numDigits] = '\0';
@@ -313,7 +344,7 @@ char* intToString(int num){
 }
 
 
-//This function returns the number of nodes in given RLEList list 
+//This function returns the number of nodes in given RLEList list
 int numOfNodes(RLEList list){
     if(list == NULL){
         return -1;
@@ -322,7 +353,7 @@ int numOfNodes(RLEList list){
     list = list -> next;
 
     //list is not intialized yet, size is 0
-    if(list -> val == -1){
+    if(list -> value == -1){
         return 0;
     }
     //Going through the list and counting the nodes
@@ -342,7 +373,7 @@ int numOfDigits(RLEList list){
     //Skipping the 'dummy' node
     list = list -> next;
     //return 0 if list is not intialized yet
-    if(list -> val == -1){
+    if(list -> value == -1){
         return 0;
     }
     //Starting to count
@@ -371,14 +402,14 @@ void updateList(RLEList list){
     RLEList nextNode = thisNode -> next;
     while (nextNode != NULL){
         // Runs through all List and combines two consecutive nodes with the same value
-        if ((thisNode -> val) == (nextNode -> val)){
-            //If finds two consecutive nodes with the same value, updating the first node and 
-            //delete the second node. If the next node after deleting equal to the first node val,
+        if ((thisNode -> value) == (nextNode -> value)){
+            //If finds two consecutive nodes with the same value, updating the first node and
+            //delete the second node. If the next node after deleting equal to the first node value,
             //repeat the process ...
-            while((thisNode -> val) == ((nextNode -> val))){
+            while((thisNode -> value) == ((nextNode -> value))){
                 thisNode -> repetitions += nextNode -> repetitions;
                 thisNode -> next = nextNode -> next;
-                 // Deletes next node
+                // Deletes next node
                 free(nextNode);
                 nextNode = thisNode -> next;
                 if(nextNode == NULL){
