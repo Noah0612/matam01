@@ -1,37 +1,49 @@
 #include <stdio.h>
 #include "AsciiArtTool.h"
 #include <assert.h>
+#include <string.h>
+#include <malloc.h>
 
+
+char invert(char ch){
+    if (ch == ' ') {
+        return '@';
+    }
+    else if (ch == '@'){
+        return ' ';
+    }
+    return ch;
+}
 
 int main (int argc, char** argv) {
-    if (argc != 3){
+    RLEList list;
+    if (argc != 4){
         puts("Invalid number of arguments, Usage: flag <source> <target>");
-        return stdout;
+        return 0;
     }
-    if (argv[1] == NULL || argv[2] == NULL){
+    // argv[2] is source file, argv[3] is target file
+    if (argv[2] == NULL || argv[3] == NULL){
         puts("Invalid file");
-        return RLE_LIST_NULL_ARGUMENT;
+        return 0;
     }
 
-    FILE* source = fopen(argv[1], "r");
-    FILE* target = fopen(argv[1], "w");
+    printf("Debug: running %s %s %s %s\n", argv[0], argv[1], argv[2], argv[3]);
+    list = asciiArtRead(argv[2]);
 
-    if (argv[0] == '-e'){
-        RLEList list = asciiArtRead(source);
-        RLEListResult result = asciiArtPrintEncoded(list, target);
-        RLEListDestroy(list);
-        return result;
+    if (!strcmp(argv[1], "-e")){    
+        asciiArtPrintEncoded(list, argv[3]);
     }
-    else if (argv[0] == '-i'){
-        RLEList list = asciiArtRead(source);
-        RLEListMap(list, '-i'); // WHAT TO PUT AS ARG FOR map_function :'(
-        RLEListResult result = asciiArtPrint(list, target);
-        RLEListDestroy(list);
-        return result;
+    else if (!strcmp(argv[1], "-i")){
+        RLEListMap(list, invert);
+        asciiArtPrint(list, argv[3]);
     }
+
     else {
         puts("Incorrect flag");
-        return stdout;
+        return 0;
     }
 
+    RLEListDestroy(list);
+    free(list);
+    return 0;
 }
