@@ -21,14 +21,14 @@ int numOfDigits(RLEList list);
 
 RLEList RLEListCreate(){ 
     //Creates a 'dummy' node followed by a real node
-    RLEList dummyPtr = (RLEList)malloc(sizeof(RLEList));
+    RLEList dummyPtr = (RLEList)malloc(sizeof(struct RLEList_t)); // 
     if(dummyPtr == NULL){
         return NULL;
     }
     dummyPtr -> isDummy = True;
 
     //Creates the real node
-    RLEList ptr = (RLEList)malloc(sizeof(RLEList));
+    RLEList ptr = (RLEList)malloc(sizeof(struct RLEList_t));
     if(ptr == NULL){
         return NULL;
     }
@@ -70,7 +70,7 @@ RLEListResult RLEListAppend(RLEList list, char value){
         return RLE_LIST_SUCCESS;
     }
     //Create a new node
-    RLEList newNode = malloc(sizeof(RLEList));
+    RLEList newNode = malloc(sizeof(struct RLEList_t));
     if(newNode == NULL){
         return RLE_LIST_OUT_OF_MEMORY;
     }
