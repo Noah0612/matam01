@@ -26,8 +26,6 @@ int main (int argc, char** argv) {
         puts("Invalid file");
         return 0;
     }
-
-    printf("Debug: running %s %s %s %s\n", argv[0], argv[1], argv[2], argv[3]);
     list = asciiArtRead(argv[2]);
 
     if (!strcmp(argv[1], "-e")){    
@@ -37,7 +35,6 @@ int main (int argc, char** argv) {
         RLEListMap(list, invert);
         asciiArtPrint(list, argv[3]);
     }
-
     else {
         puts("Incorrect flag");
         return 0;

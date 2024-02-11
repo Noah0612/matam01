@@ -17,9 +17,6 @@ RLEList asciiArtRead(char* fileName){
     unsigned char c = 0;
 
     assert(fileName);
-
-    printf("asciiArtRead\n");
-
     list = RLEListCreate();
     if (list == NULL || fileName == NULL){
         return NULL;
@@ -58,7 +55,7 @@ RLEListResult asciiArtPrint(RLEList list, char* fileName){
         ch = RLEListGet(list, i, &result);
         if (ch == 0){
             fclose(out_stream);
-            return *result;
+            return result;
         }
         fprintf(out_stream, "%c", ch);
     }
@@ -83,7 +80,5 @@ RLEListResult asciiArtPrintEncoded(RLEList list, char* fileName){
 
     fclose(out_stream);
     free(strToPrint);
-    puts("Printed to file");
-
     return RLE_LIST_SUCCESS;
 }
